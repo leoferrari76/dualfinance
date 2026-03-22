@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { LayoutDashboard, ArrowLeftRight, CreditCard, Tag, LogOut } from 'lucide-react'
+import { LayoutDashboard, ArrowLeftRight, CreditCard, Tag, Users, LogOut } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
 const nav = [
@@ -10,6 +10,7 @@ const nav = [
   { href: '/transactions', label: 'Lançamentos', icon: ArrowLeftRight },
   { href: '/cards', label: 'Cartões', icon: CreditCard },
   { href: '/categories', label: 'Categorias', icon: Tag },
+  { href: '/invite', label: 'Conectar casal', icon: Users },
 ]
 
 export default function Sidebar({ userName }: { userName: string }) {
