@@ -1,8 +1,23 @@
 import { createClient } from '@/lib/supabase/server'
 import TransactionList from '@/components/TransactionList'
 import TransactionForm from '@/components/TransactionForm'
+import MonthPicker from '@/components/MonthPicker'
 
-export default async function TransactionsPage() {
+function currentMonth() {
+  const now = new Date()
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+}
+
+export default async function TransactionsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ month?: string }>
+}) {
+  const { month = currentMonth() } = await searchParams
+  const [year, mon] = month.split('-').map(Number)
+  const startDate = `${year}-${String(mon).padStart(2, '0')}-01`
+  const endDate = new Date(year, mon, 0).toISOString().split('T')[0]
+
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
@@ -11,6 +26,8 @@ export default async function TransactionsPage() {
     .from('transactions')
     .select('*, category:categories(id, segment, custom_name)')
     .eq('user_id', user.id)
+    .gte('date', startDate)
+    .lte('date', endDate)
     .order('date', { ascending: false })
 
   const { data: categories } = await supabase
@@ -26,6 +43,7 @@ export default async function TransactionsPage() {
           <h1 className="text-2xl font-bold text-gray-900">Lançamentos</h1>
           <p className="text-sm text-gray-500 mt-0.5">Ganhos e gastos fixos e avulsos</p>
         </div>
+        <MonthPicker value={month} />
       </div>
 
       <div className="grid grid-cols-5 gap-6">

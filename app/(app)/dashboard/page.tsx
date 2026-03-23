@@ -1,12 +1,23 @@
 import { createClient } from '@/lib/supabase/server'
 import { SEGMENTS } from '@/types'
 import PrivacyToggle from '@/components/PrivacyToggle'
+import MonthPicker from '@/components/MonthPicker'
 
-function formatCurrency(value: number) {
-  return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+function currentMonth() {
+  const now = new Date()
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
 }
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ month?: string }>
+}) {
+  const { month = currentMonth() } = await searchParams
+  const [year, mon] = month.split('-').map(Number)
+  const startDate = `${year}-${String(mon).padStart(2, '0')}-01`
+  const endDate = new Date(year, mon, 0).toISOString().split('T')[0] // last day of month
+
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
@@ -17,13 +28,13 @@ export default async function DashboardPage() {
     .eq('id', user.id)
     .single()
 
-  // Fetch own transactions
   const { data: myTransactions } = await supabase
     .from('transactions')
     .select('type, amount, category:categories(segment)')
     .eq('user_id', user.id)
+    .gte('date', startDate)
+    .lte('date', endDate)
 
-  // Fetch partner transactions if in couple and sharing enabled
   let partnerTransactions: typeof myTransactions = []
   let partnerName = ''
 
@@ -50,6 +61,8 @@ export default async function DashboardPage() {
           .from('transactions')
           .select('type, amount, category:categories(segment)')
           .eq('user_id', partnerId)
+          .gte('date', startDate)
+          .lte('date', endDate)
         partnerTransactions = pt ?? []
       }
     }
@@ -69,7 +82,6 @@ export default async function DashboardPage() {
     balance: mine.balance + partner.balance,
   }
 
-  // By segment (combined)
   const allTransactions = [...(myTransactions ?? []), ...(partnerTransactions ?? [])]
   const bySegment = SEGMENTS.map(segment => {
     const txs = allTransactions.filter((t) => {
@@ -88,20 +100,18 @@ export default async function DashboardPage() {
           <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
           <p className="text-sm text-gray-500 mt-0.5">Visão geral das finanças</p>
         </div>
-        <PrivacyToggle
-          userId={user.id}
-          initialValue={profile?.share_with_partner ?? false}
-        />
+        <div className="flex items-center gap-3">
+          <MonthPicker value={month} />
+          <PrivacyToggle userId={user.id} initialValue={profile?.share_with_partner ?? false} />
+        </div>
       </div>
 
-      {/* Combined summary cards */}
       <div className="grid grid-cols-3 gap-4 mb-8">
         <SummaryCard label="Entradas do casal" value={combined.income} color="green" />
         <SummaryCard label="Saídas do casal" value={combined.expenses} color="red" />
         <SummaryCard label="Saldo do casal" value={combined.balance} color={combined.balance >= 0 ? 'indigo' : 'red'} />
       </div>
 
-      {/* Individual breakdown */}
       <div className="grid grid-cols-2 gap-4 mb-8">
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
           <p className="text-sm font-semibold text-gray-700 mb-3">Meu resumo</p>
@@ -132,7 +142,6 @@ export default async function DashboardPage() {
         )}
       </div>
 
-      {/* By segment */}
       {bySegment.length > 0 && (
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
           <p className="text-sm font-semibold text-gray-700 mb-4">Por segmento</p>
@@ -141,8 +150,8 @@ export default async function DashboardPage() {
               <div key={segment} className="flex items-center gap-4">
                 <span className="text-sm text-gray-600 w-28">{segment}</span>
                 <div className="flex-1 flex gap-3 text-xs">
-                  {income > 0 && <span className="text-green-600">+{formatCurrency(income)}</span>}
-                  {expenses > 0 && <span className="text-red-500">-{formatCurrency(expenses)}</span>}
+                  {income > 0 && <span className="text-green-600">+{income.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>}
+                  {expenses > 0 && <span className="text-red-500">-{expenses.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>}
                 </div>
               </div>
             ))}
