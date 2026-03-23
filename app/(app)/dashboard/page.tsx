@@ -2,10 +2,17 @@ import { createClient } from '@/lib/supabase/server'
 import { SEGMENTS } from '@/types'
 import PrivacyToggle from '@/components/PrivacyToggle'
 import MonthPicker from '@/components/MonthPicker'
+import FinancialInsights from '@/components/FinancialInsights'
 
 function currentMonth() {
   const now = new Date()
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+}
+
+function prevMonth(month: string) {
+  const [year, mon] = month.split('-').map(Number)
+  const d = new Date(year, mon - 2) // mon-1 is current, mon-2 is previous
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
 }
 
 export default async function DashboardPage({
@@ -16,7 +23,12 @@ export default async function DashboardPage({
   const { month = currentMonth() } = await searchParams
   const [year, mon] = month.split('-').map(Number)
   const startDate = `${year}-${String(mon).padStart(2, '0')}-01`
-  const endDate = new Date(year, mon, 0).toISOString().split('T')[0] // last day of month
+  const endDate = new Date(year, mon, 0).toISOString().split('T')[0]
+
+  const prev = prevMonth(month)
+  const [pyear, pmon] = prev.split('-').map(Number)
+  const prevStart = `${pyear}-${String(pmon).padStart(2, '0')}-01`
+  const prevEnd = new Date(pyear, pmon, 0).toISOString().split('T')[0]
 
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -28,13 +40,22 @@ export default async function DashboardPage({
     .eq('id', user.id)
     .single()
 
+  // Current month
   const { data: myTransactions } = await supabase
     .from('transactions')
-    .select('type, amount, category:categories(segment)')
+    .select('type, amount, is_fixed, category:categories(segment)')
     .eq('user_id', user.id)
     .or(`and(is_fixed.eq.false,date.gte.${startDate},date.lte.${endDate}),and(is_fixed.eq.true,date.lte.${endDate})`)
 
+  // Previous month
+  const { data: myLastMonth } = await supabase
+    .from('transactions')
+    .select('type, amount, is_fixed')
+    .eq('user_id', user.id)
+    .or(`and(is_fixed.eq.false,date.gte.${prevStart},date.lte.${prevEnd}),and(is_fixed.eq.true,date.lte.${prevEnd})`)
+
   let partnerTransactions: typeof myTransactions = []
+  let partnerLastMonth: typeof myLastMonth = []
   let partnerName = ''
 
   if (profile?.couple_id) {
@@ -58,17 +79,24 @@ export default async function DashboardPage({
       if (partnerProfile?.share_with_partner) {
         const { data: pt } = await supabase
           .from('transactions')
-          .select('type, amount, category:categories(segment)')
+          .select('type, amount, is_fixed, category:categories(segment)')
           .eq('user_id', partnerId)
           .or(`and(is_fixed.eq.false,date.gte.${startDate},date.lte.${endDate}),and(is_fixed.eq.true,date.lte.${endDate})`)
         partnerTransactions = pt ?? []
+
+        const { data: ptl } = await supabase
+          .from('transactions')
+          .select('type, amount, is_fixed')
+          .eq('user_id', partnerId)
+          .or(`and(is_fixed.eq.false,date.gte.${prevStart},date.lte.${prevEnd}),and(is_fixed.eq.true,date.lte.${prevEnd})`)
+        partnerLastMonth = ptl ?? []
       }
     }
   }
 
-  function summarize(transactions: typeof myTransactions) {
-    const income = transactions?.filter(t => t.type === 'income').reduce((s, t) => s + Number(t.amount), 0) ?? 0
-    const expenses = transactions?.filter(t => t.type === 'expense').reduce((s, t) => s + Number(t.amount), 0) ?? 0
+  function summarize(txs: { type: string; amount: number }[] | null) {
+    const income = txs?.filter(t => t.type === 'income').reduce((s, t) => s + Number(t.amount), 0) ?? 0
+    const expenses = txs?.filter(t => t.type === 'expense').reduce((s, t) => s + Number(t.amount), 0) ?? 0
     return { income, expenses, balance: income - expenses }
   }
 
@@ -80,7 +108,15 @@ export default async function DashboardPage({
     balance: mine.balance + partner.balance,
   }
 
+  const allLast = [...(myLastMonth ?? []), ...(partnerLastMonth ?? [])]
+  const lastMonth = summarize(allLast)
+
   const allTransactions = [...(myTransactions ?? []), ...(partnerTransactions ?? [])]
+
+  const fixedExpenses = allTransactions
+    .filter(t => t.type === 'expense' && t.is_fixed)
+    .reduce((s, t) => s + Number(t.amount), 0)
+
   const bySegment = SEGMENTS.map(segment => {
     const txs = allTransactions.filter((t) => {
       const cat = Array.isArray(t.category) ? t.category[0] : t.category
@@ -90,6 +126,8 @@ export default async function DashboardPage({
     const expenses = txs.filter(t => t.type === 'expense').reduce((s, t) => s + Number(t.amount), 0)
     return { segment, income, expenses }
   }).filter(s => s.income > 0 || s.expenses > 0)
+
+  const isCurrentMonth = month === currentMonth()
 
   return (
     <div className="p-8 max-w-4xl">
@@ -115,6 +153,16 @@ export default async function DashboardPage({
         <SummaryCard label={partnerTransactions && partnerTransactions.length > 0 ? 'Saídas do casal' : 'Minhas saídas'} value={combined.expenses} color="red" />
         <SummaryCard label={partnerTransactions && partnerTransactions.length > 0 ? 'Saldo do casal' : 'Meu saldo'} value={combined.balance} color={combined.balance >= 0 ? 'indigo' : 'red'} />
       </div>
+
+      {/* Financial Insights */}
+      <FinancialInsights
+        current={combined}
+        lastMonth={lastMonth}
+        bySegment={bySegment}
+        month={month}
+        fixedExpenses={fixedExpenses}
+        isCurrentMonth={isCurrentMonth}
+      />
 
       <div className="grid grid-cols-2 gap-4 mb-8">
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
@@ -167,11 +215,7 @@ export default async function DashboardPage({
 }
 
 function SummaryCard({ label, value, color }: { label: string; value: number; color: string }) {
-  const colorMap: Record<string, string> = {
-    green: 'text-green-600',
-    red: 'text-red-500',
-    indigo: 'text-indigo-600',
-  }
+  const colorMap: Record<string, string> = { green: 'text-green-600', red: 'text-red-500', indigo: 'text-indigo-600' }
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
       <p className="text-xs text-gray-500 mb-1">{label}</p>
@@ -183,17 +227,11 @@ function SummaryCard({ label, value, color }: { label: string; value: number; co
 }
 
 function Row({ label, value, color, bold }: { label: string; value: number; color: string; bold?: boolean }) {
-  const colorMap: Record<string, string> = {
-    green: 'text-green-600',
-    red: 'text-red-500',
-    indigo: 'text-indigo-600',
-  }
+  const colorMap: Record<string, string> = { green: 'text-green-600', red: 'text-red-500', indigo: 'text-indigo-600' }
   return (
     <div className={`flex justify-between ${bold ? 'font-semibold' : ''}`}>
       <span className="text-gray-500">{label}</span>
-      <span className={colorMap[color]}>
-        {value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-      </span>
+      <span className={colorMap[color]}>{value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
     </div>
   )
 }
