@@ -22,12 +22,12 @@ export default async function TransactionsPage({
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
 
+  // Regular transactions in the selected month + fixed transactions active from any past month
   const { data: transactions } = await supabase
     .from('transactions')
     .select('*, category:categories(id, segment, custom_name)')
     .eq('user_id', user.id)
-    .gte('date', startDate)
-    .lte('date', endDate)
+    .or(`and(is_fixed.eq.false,date.gte.${startDate},date.lte.${endDate}),and(is_fixed.eq.true,date.lte.${endDate})`)
     .order('date', { ascending: false })
 
   const { data: categories } = await supabase

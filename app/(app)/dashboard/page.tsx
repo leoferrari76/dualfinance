@@ -32,8 +32,7 @@ export default async function DashboardPage({
     .from('transactions')
     .select('type, amount, category:categories(segment)')
     .eq('user_id', user.id)
-    .gte('date', startDate)
-    .lte('date', endDate)
+    .or(`and(is_fixed.eq.false,date.gte.${startDate},date.lte.${endDate}),and(is_fixed.eq.true,date.lte.${endDate})`)
 
   let partnerTransactions: typeof myTransactions = []
   let partnerName = ''
@@ -61,8 +60,7 @@ export default async function DashboardPage({
           .from('transactions')
           .select('type, amount, category:categories(segment)')
           .eq('user_id', partnerId)
-          .gte('date', startDate)
-          .lte('date', endDate)
+          .or(`and(is_fixed.eq.false,date.gte.${startDate},date.lte.${endDate}),and(is_fixed.eq.true,date.lte.${endDate})`)
         partnerTransactions = pt ?? []
       }
     }
@@ -106,10 +104,16 @@ export default async function DashboardPage({
         </div>
       </div>
 
+      {partnerName && partnerTransactions?.length === 0 && (
+        <p className="text-xs text-amber-600 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2 mb-4">
+          Os totais abaixo incluem apenas seus dados — {partnerName} está com dados privados.
+        </p>
+      )}
+
       <div className="grid grid-cols-3 gap-4 mb-8">
-        <SummaryCard label="Entradas do casal" value={combined.income} color="green" />
-        <SummaryCard label="Saídas do casal" value={combined.expenses} color="red" />
-        <SummaryCard label="Saldo do casal" value={combined.balance} color={combined.balance >= 0 ? 'indigo' : 'red'} />
+        <SummaryCard label={partnerTransactions && partnerTransactions.length > 0 ? 'Entradas do casal' : 'Minhas entradas'} value={combined.income} color="green" />
+        <SummaryCard label={partnerTransactions && partnerTransactions.length > 0 ? 'Saídas do casal' : 'Minhas saídas'} value={combined.expenses} color="red" />
+        <SummaryCard label={partnerTransactions && partnerTransactions.length > 0 ? 'Saldo do casal' : 'Meu saldo'} value={combined.balance} color={combined.balance >= 0 ? 'indigo' : 'red'} />
       </div>
 
       <div className="grid grid-cols-2 gap-4 mb-8">

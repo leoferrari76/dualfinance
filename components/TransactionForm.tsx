@@ -20,6 +20,7 @@ export default function TransactionForm({ userId, categories }: Props) {
   const [isFixed, setIsFixed] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [success, setSuccess] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -48,6 +49,8 @@ export default function TransactionForm({ userId, categories }: Props) {
     setCategoryId('')
     setIsFixed(false)
     setLoading(false)
+    setSuccess(true)
+    setTimeout(() => setSuccess(false), 2500)
     router.refresh()
   }
 
@@ -56,6 +59,7 @@ export default function TransactionForm({ userId, categories }: Props) {
       <p className="text-sm font-semibold text-gray-800">Novo lançamento</p>
 
       {error && <p className="text-xs text-red-500 bg-red-50 px-3 py-2 rounded-lg">{error}</p>}
+      {success && <p className="text-xs text-green-600 bg-green-50 px-3 py-2 rounded-lg">Lançamento salvo!</p>}
 
       {/* Type toggle */}
       <div className="flex rounded-lg overflow-hidden border border-gray-200 text-sm">
