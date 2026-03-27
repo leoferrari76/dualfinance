@@ -18,23 +18,39 @@ export default function InstallmentForm({ cards, categories }: Props) {
   const [description, setDescription] = useState('')
   const [totalAmount, setTotalAmount] = useState('')
   const [totalInstallments, setTotalInstallments] = useState('')
-  const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0])
+  const [purchaseDate, setPurchaseDate] = useState(new Date().toISOString().split('T')[0])
   const [categoryId, setCategoryId] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
+  const selectedCard = cards.find(c => c.id === cardId)
+
+  // Computes the first billing month based on closing day rule
+  function calcBillingStartDate(): string {
+    if (!purchaseDate) return purchaseDate
+    const d = new Date(purchaseDate + 'T00:00:00')
+    if (selectedCard && d.getDate() >= selectedCard.closing_day) {
+      d.setMonth(d.getMonth() + 1)
+    }
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`
+  }
+
+  function calcEndDate(billingStart: string): string {
+    if (!isInstallment) return billingStart
+    if (!totalInstallments) return billingStart
+    const start = new Date(billingStart + 'T00:00:00')
+    start.setMonth(start.getMonth() + parseInt(totalInstallments) - 1)
+    return `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, '0')}-01`
+  }
+
+  const billingStartDate = calcBillingStartDate()
+  const billingMonth = new Date(billingStartDate + 'T00:00:00').toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
+  const purchaseDay = purchaseDate ? new Date(purchaseDate + 'T00:00:00').getDate() : null
+  const billsNextMonth = selectedCard && purchaseDay !== null && purchaseDay >= selectedCard.closing_day
+
   const perInstallment = isInstallment && totalAmount && totalInstallments
     ? (parseFloat(totalAmount.replace(',', '.')) / parseInt(totalInstallments)).toFixed(2)
     : null
-
-  function calcEndDate() {
-    if (!startDate) return ''
-    if (!isInstallment) return startDate
-    if (!totalInstallments) return ''
-    const start = new Date(startDate + 'T00:00:00')
-    start.setMonth(start.getMonth() + parseInt(totalInstallments) - 1)
-    return start.toISOString().split('T')[0]
-  }
 
   async function handleSubmit(e: { preventDefault(): void }) {
     e.preventDefault()
@@ -43,7 +59,8 @@ export default function InstallmentForm({ cards, categories }: Props) {
 
     const total = parseFloat(totalAmount.replace(',', '.'))
     const installments = isInstallment ? parseInt(totalInstallments) : 1
-    const endDate = calcEndDate()
+    const startDate = billingStartDate
+    const endDate = calcEndDate(startDate)
 
     const supabase = createClient()
     const { error } = await supabase.from('installments').insert({
@@ -110,7 +127,7 @@ export default function InstallmentForm({ cards, categories }: Props) {
         >
           <option value="">Selecione...</option>
           {cards.map(c => (
-            <option key={c.id} value={c.id}>{c.name}</option>
+            <option key={c.id} value={c.id}>{c.name} (fecha dia {c.closing_day})</option>
           ))}
         </select>
       </div>
@@ -167,17 +184,28 @@ export default function InstallmentForm({ cards, categories }: Props) {
       )}
 
       <div className="space-y-1">
-        <label className="text-xs font-medium text-gray-600">
-          {isInstallment ? 'Início' : 'Data da compra'}
-        </label>
+        <label className="text-xs font-medium text-gray-600">Data da compra</label>
         <input
           type="date"
-          value={startDate}
-          onChange={e => setStartDate(e.target.value)}
+          value={purchaseDate}
+          onChange={e => setPurchaseDate(e.target.value)}
           required
           className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
         />
       </div>
+
+      {cardId && purchaseDate && (
+        <p className={`text-xs px-3 py-2 rounded-lg font-medium ${
+          billsNextMonth
+            ? 'bg-amber-50 text-amber-700 border border-amber-100'
+            : 'bg-green-50 text-green-700 border border-green-100'
+        }`}>
+          {billsNextMonth
+            ? `Compra após o fechamento (dia ${selectedCard!.closing_day}) — primeira cobrança em ${billingMonth}`
+            : `Primeira cobrança em ${billingMonth}`
+          }
+        </p>
+      )}
 
       <div className="space-y-1">
         <label className="text-xs font-medium text-gray-600">Categoria</label>
