@@ -60,28 +60,26 @@ function InviteContent() {
 
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
-
-    const { data: couple } = await supabase
-      .from('couples')
-      .select('id, user_2_id')
-      .eq('invite_code', inputCode.toUpperCase())
-      .single()
-
-    if (!couple) {
-      setError('Código inválido. Confirme com seu parceiro.')
+    if (!user) {
       setLoading(false)
+      router.push('/login')
       return
     }
 
-    if (couple.user_2_id) {
-      setError('Este convite já foi usado.')
+    const { data, error } = await supabase.rpc('join_couple_by_code', {
+      invite_code_input: inputCode.toUpperCase(),
+    })
+
+    if (error || data?.error) {
+      const msg = data?.error === 'invalid_code'
+        ? 'Código inválido. Confirme com seu parceiro.'
+        : data?.error === 'already_used'
+        ? 'Este convite já foi usado.'
+        : 'Erro ao conectar. Tente novamente.'
+      setError(msg)
       setLoading(false)
       return
     }
-
-    await supabase.from('couples').update({ user_2_id: user.id }).eq('id', couple.id)
-    await supabase.from('profiles').update({ couple_id: couple.id }).eq('id', user.id)
 
     router.push('/dashboard')
     router.refresh()
