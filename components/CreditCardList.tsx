@@ -10,9 +10,19 @@ interface Props {
   cards: CreditCard[]
   installments: Installment[]
   categories: Category[]
+  month: string
 }
 
-export default function CreditCardList({ cards, installments, categories }: Props) {
+function installmentProgress(inst: Installment, month: string) {
+  const [year, mon] = month.split('-').map(Number)
+  const [sy, sm] = inst.start_date.split('-').map(Number)
+  const elapsed = (year - sy) * 12 + (mon - sm) + 1
+  const current = Math.min(Math.max(elapsed, 1), inst.total_installments)
+  const remaining = inst.total_installments - current
+  return { current, remaining }
+}
+
+export default function CreditCardList({ cards, installments, categories, month }: Props) {
   const router = useRouter()
   const [editing, setEditing] = useState<string | null>(null)
   const [editDescription, setEditDescription] = useState('')
@@ -127,6 +137,7 @@ export default function CreditCardList({ cards, installments, categories }: Prop
                   const fmtDate = (d: Date) =>
                     d.toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' })
                   const isAvista = inst.total_installments === 1
+                  const { current, remaining } = isAvista ? { current: 1, remaining: 0 } : installmentProgress(inst, month)
 
                   if (editing === inst.id) {
                     return (
@@ -217,7 +228,7 @@ export default function CreditCardList({ cards, installments, categories }: Prop
                         <p className="text-sm font-medium text-gray-800 truncate">{inst.description}</p>
                         <p className="text-xs text-gray-400 mt-0.5">
                           {cat?.custom_name ?? cat?.segment} ·{' '}
-                          {isAvista ? 'à vista' : `${inst.total_installments}x · ${fmtDate(start)} – ${fmtDate(end)}`}
+                          {isAvista ? 'à vista' : `${current}/${inst.total_installments} · ${remaining} restante${remaining !== 1 ? 's' : ''} · ${fmtDate(start)} – ${fmtDate(end)}`}
                         </p>
                       </div>
                       <div className="text-right shrink-0">

@@ -70,6 +70,7 @@ export default async function CardsPage({
             cards={cards ?? []}
             installments={installments ?? []}
             categories={categories ?? []}
+            month={month}
           />
         </div>
       </div>
