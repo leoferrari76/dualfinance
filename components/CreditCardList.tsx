@@ -136,8 +136,8 @@ export default function CreditCardList({ cards, installments, categories, month 
                   const end = new Date(inst.end_date + 'T00:00:00')
                   const fmtDate = (d: Date) =>
                     d.toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' })
-                  const isAvista = inst.total_installments === 1
-                  const { current, remaining } = isAvista ? { current: 1, remaining: 0 } : installmentProgress(inst, month)
+                  const isAvista = inst.total_installments === 1 && !inst.is_recurring
+                  const { current, remaining } = (!isAvista && !inst.is_recurring) ? installmentProgress(inst, month) : { current: 1, remaining: 0 }
 
                   if (editing === inst.id) {
                     return (
@@ -228,7 +228,11 @@ export default function CreditCardList({ cards, installments, categories, month 
                         <p className="text-sm font-medium text-gray-800 truncate">{inst.description}</p>
                         <p className="text-xs text-gray-400 mt-0.5">
                           {cat?.custom_name ?? cat?.segment} ·{' '}
-                          {isAvista ? 'à vista' : `${current}/${inst.total_installments} · ${remaining} restante${remaining !== 1 ? 's' : ''} · ${fmtDate(start)} – ${fmtDate(end)}`}
+                          {inst.is_recurring
+                            ? 'recorrente'
+                            : isAvista
+                            ? 'à vista'
+                            : `${current}/${inst.total_installments} · ${remaining} restante${remaining !== 1 ? 's' : ''} · ${fmtDate(start)} – ${fmtDate(end)}`}
                         </p>
                       </div>
                       <div className="text-right shrink-0">
@@ -237,9 +241,9 @@ export default function CreditCardList({ cards, installments, categories, month 
                             style: 'currency',
                             currency: 'BRL',
                           })}
-                          {!isAvista && <span className="text-xs font-normal text-gray-400">/parc.</span>}
+                          {!isAvista && !inst.is_recurring && <span className="text-xs font-normal text-gray-400">/parc.</span>}
                         </p>
-                        {!isAvista && (
+                        {!isAvista && !inst.is_recurring && (
                           <p className="text-xs text-gray-400">
                             total{' '}
                             {Number(inst.total_amount).toLocaleString('pt-BR', {

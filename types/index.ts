@@ -78,6 +78,7 @@ export interface Installment {
   total_installments: number
   start_date: string
   end_date: string
+  is_recurring: boolean
   category_id: string
   category?: Category
   created_at: string

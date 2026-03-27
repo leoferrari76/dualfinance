@@ -14,6 +14,7 @@ interface Props {
 export default function InstallmentForm({ cards, categories }: Props) {
   const router = useRouter()
   const [isInstallment, setIsInstallment] = useState(true)
+  const [isRecurring, setIsRecurring] = useState(false)
   const [cardId, setCardId] = useState('')
   const [description, setDescription] = useState('')
   const [totalAmount, setTotalAmount] = useState('')
@@ -58,9 +59,9 @@ export default function InstallmentForm({ cards, categories }: Props) {
     setLoading(true)
 
     const total = parseFloat(totalAmount.replace(',', '.'))
-    const installments = isInstallment ? parseInt(totalInstallments) : 1
+    const installments = isInstallment && !isRecurring ? parseInt(totalInstallments) : 1
     const startDate = billingStartDate
-    const endDate = calcEndDate(startDate)
+    const endDate = isRecurring ? '2099-12-01' : calcEndDate(startDate)
 
     const supabase = createClient()
     const { error } = await supabase.from('installments').insert({
@@ -71,6 +72,7 @@ export default function InstallmentForm({ cards, categories }: Props) {
       total_installments: installments,
       start_date: startDate,
       end_date: endDate,
+      is_recurring: isRecurring,
       category_id: categoryId,
     })
 
@@ -85,6 +87,7 @@ export default function InstallmentForm({ cards, categories }: Props) {
     setTotalInstallments('')
     setCategoryId('')
     setCardId('')
+    setIsRecurring(false)
     setLoading(false)
     router.refresh()
   }
@@ -95,25 +98,34 @@ export default function InstallmentForm({ cards, categories }: Props) {
 
       {error && <p className="text-xs text-red-500 bg-red-50 px-3 py-2 rounded-lg">{error}</p>}
 
-      {/* Installment toggle */}
+      {/* Type toggle */}
       <div className="flex rounded-lg overflow-hidden border border-gray-200 text-sm">
         <button
           type="button"
-          onClick={() => setIsInstallment(true)}
+          onClick={() => { setIsInstallment(true); setIsRecurring(false) }}
           className={`flex-1 py-1.5 font-medium transition-colors ${
-            isInstallment ? 'bg-indigo-600 text-white' : 'text-gray-500 hover:bg-gray-50'
+            isInstallment && !isRecurring ? 'bg-indigo-600 text-white' : 'text-gray-500 hover:bg-gray-50'
           }`}
         >
           Parcelado
         </button>
         <button
           type="button"
-          onClick={() => { setIsInstallment(false); setTotalInstallments('') }}
+          onClick={() => { setIsInstallment(false); setIsRecurring(false); setTotalInstallments('') }}
           className={`flex-1 py-1.5 font-medium transition-colors ${
-            !isInstallment ? 'bg-indigo-600 text-white' : 'text-gray-500 hover:bg-gray-50'
+            !isInstallment && !isRecurring ? 'bg-indigo-600 text-white' : 'text-gray-500 hover:bg-gray-50'
           }`}
         >
           À vista
+        </button>
+        <button
+          type="button"
+          onClick={() => { setIsRecurring(true); setIsInstallment(false); setTotalInstallments('') }}
+          className={`flex-1 py-1.5 font-medium transition-colors ${
+            isRecurring ? 'bg-indigo-600 text-white' : 'text-gray-500 hover:bg-gray-50'
+          }`}
+        >
+          Recorrente
         </button>
       </div>
 
@@ -229,7 +241,7 @@ export default function InstallmentForm({ cards, categories }: Props) {
         disabled={loading}
         className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-medium py-2 rounded-lg text-sm transition-colors"
       >
-        {loading ? 'Salvando...' : isInstallment ? 'Adicionar parcela' : 'Adicionar compra'}
+        {loading ? 'Salvando...' : isRecurring ? 'Adicionar recorrente' : isInstallment ? 'Adicionar parcela' : 'Adicionar compra'}
       </button>
     </form>
   )
