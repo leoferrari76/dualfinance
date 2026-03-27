@@ -69,6 +69,7 @@ export default async function CardsPage({
           <CreditCardList
             cards={cards ?? []}
             installments={installments ?? []}
+            categories={categories ?? []}
           />
         </div>
       </div>
