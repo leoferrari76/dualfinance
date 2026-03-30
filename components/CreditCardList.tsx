@@ -13,6 +13,21 @@ interface Props {
   month: string
 }
 
+function totalCommitted(cardInsts: Installment[], month: string) {
+  const [year, mon] = month.split('-').map(Number)
+  return cardInsts
+    .filter(inst => !inst.is_recurring)
+    .reduce((sum, inst) => {
+      const [ey, em] = inst.end_date.split('-').map(Number)
+      const remaining = Math.max(0, (ey - year) * 12 + (em - mon) + 1)
+      return sum + remaining * Number(inst.per_installment_amount)
+    }, 0)
+}
+
+function fmtBRL(v: number) {
+  return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+}
+
 function installmentProgress(inst: Installment, month: string) {
   const [year, mon] = month.split('-').map(Number)
   const [sy, sm] = inst.start_date.split('-').map(Number)
@@ -97,14 +112,38 @@ export default function CreditCardList({ cards, installments, categories, month 
     )
   }
 
+  const grandMonthly = installments.reduce((s, i) => s + Number(i.per_installment_amount), 0)
+  const grandCommitted = totalCommitted(installments, month)
+  const hasRecurring = installments.some(i => i.is_recurring)
+
   return (
     <div className="space-y-4">
+      {/* Totals summary */}
+      {grandMonthly > 0 && (
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm px-5 py-4 flex items-center justify-between gap-4">
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Total dos cartões</p>
+          <div className="flex gap-6 text-right">
+            <div>
+              <p className="text-[10px] text-gray-400 mb-0.5">Fatura do mês</p>
+              <p className="text-base font-bold text-red-500">{fmtBRL(grandMonthly)}</p>
+            </div>
+            {grandCommitted > 0 && (
+              <div>
+                <p className="text-[10px] text-gray-400 mb-0.5">
+                  Comprometido{hasRecurring ? ' (excl. recorrentes)' : ''}
+                </p>
+                <p className="text-base font-bold text-gray-700">{fmtBRL(grandCommitted)}</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {cards.map(card => {
         const cardInstallments = installments.filter(i => i.credit_card_id === card.id)
-        const totalMonthly = cardInstallments.reduce(
-          (s, i) => s + Number(i.per_installment_amount),
-          0
-        )
+        const totalMonthly = cardInstallments.reduce((s, i) => s + Number(i.per_installment_amount), 0)
+        const committed = totalCommitted(cardInstallments, month)
+        const cardHasRecurring = cardInstallments.some(i => i.is_recurring)
 
         return (
           <div key={card.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
@@ -113,11 +152,20 @@ export default function CreditCardList({ cards, installments, categories, month 
                 <p className="text-sm font-semibold text-gray-800">{card.name}</p>
                 <p className="text-xs text-gray-400">Fecha dia {card.closing_day}</p>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-4">
                 {totalMonthly > 0 && (
-                  <span className="text-xs font-medium text-red-500">
-                    {totalMonthly.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}/mês
-                  </span>
+                  <div className="text-right">
+                    <p className="text-[10px] text-gray-400">Fatura do mês</p>
+                    <p className="text-sm font-semibold text-red-500">{fmtBRL(totalMonthly)}</p>
+                  </div>
+                )}
+                {committed > 0 && (
+                  <div className="text-right">
+                    <p className="text-[10px] text-gray-400">
+                      Comprometido{cardHasRecurring ? '*' : ''}
+                    </p>
+                    <p className="text-sm font-semibold text-gray-600">{fmtBRL(committed)}</p>
+                  </div>
                 )}
                 <button
                   onClick={() => deleteCard(card.id)}
