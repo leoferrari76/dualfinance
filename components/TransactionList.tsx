@@ -9,9 +9,10 @@ import type { Transaction, Category } from '@/types'
 interface Props {
   transactions: Transaction[]
   categories: Category[]
+  month: string
 }
 
-export default function TransactionList({ transactions, categories }: Props) {
+export default function TransactionList({ transactions, categories, month }: Props) {
   const router = useRouter()
   const [deleting, setDeleting] = useState<string | null>(null)
   const [editing, setEditing] = useState<string | null>(null)
@@ -66,6 +67,7 @@ export default function TransactionList({ transactions, categories }: Props) {
           title="Fixos"
           transactions={fixed}
           categories={categories}
+          month={month}
           editing={editing}
           editAmount={editAmount}
           editDescription={editDescription}
@@ -88,6 +90,7 @@ export default function TransactionList({ transactions, categories }: Props) {
           title="Avulsos"
           transactions={oneOff}
           categories={categories}
+          month={month}
           editing={editing}
           editAmount={editAmount}
           editDescription={editDescription}
@@ -118,6 +121,7 @@ function Section({
   title,
   transactions,
   categories,
+  month,
   editing,
   editAmount,
   editDescription,
@@ -137,6 +141,7 @@ function Section({
   title: string
   transactions: Transaction[]
   categories: Category[]
+  month: string
   editing: string | null
   editAmount: string
   editDescription: string
@@ -227,7 +232,9 @@ function Section({
                 </p>
                 <p className="text-xs text-gray-400 mt-0.5">
                   {cat?.custom_name ?? cat?.segment} ·{' '}
-                  {new Date(t.date + 'T00:00:00').toLocaleDateString('pt-BR')}
+                  {new Date(
+                    (t.is_fixed ? `${month}-${t.date.split('-')[2]}` : t.date) + 'T00:00:00'
+                  ).toLocaleDateString('pt-BR')}
                 </p>
               </div>
               <span

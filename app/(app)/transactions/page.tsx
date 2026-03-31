@@ -51,7 +51,7 @@ export default async function TransactionsPage({
           <TransactionForm userId={user.id} categories={categories ?? []} />
         </div>
         <div className="col-span-3">
-          <TransactionList transactions={transactions ?? []} categories={categories ?? []} />
+          <TransactionList transactions={transactions ?? []} categories={categories ?? []} month={month} />
         </div>
       </div>
     </div>
