@@ -61,7 +61,7 @@ export default function TransactionList({ transactions, categories, month }: Pro
   const oneOff = transactions.filter(t => !t.is_fixed)
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {fixed.length > 0 && (
         <Section
           title="Fixos"
@@ -109,8 +109,8 @@ export default function TransactionList({ transactions, categories, month }: Pro
         />
       )}
       {transactions.length === 0 && (
-        <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center">
-          <p className="text-sm text-gray-400">Nenhum lançamento ainda.</p>
+        <div className="rounded-2xl p-8 text-center" style={{ background: 'var(--cream)', boxShadow: 'var(--lift-1)' }}>
+          <p className="t-meta">Nenhum lançamento ainda.</p>
         </div>
       )}
     </div>
@@ -159,18 +159,18 @@ function Section({
   setEditCategoryId: (v: string) => void
 }) {
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-      <div className="px-5 py-3 border-b border-gray-50">
-        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{title}</p>
+    <div className="rounded-2xl overflow-hidden" style={{ background: 'var(--cream)', boxShadow: 'var(--lift-1)' }}>
+      <div className="px-5 py-3" style={{ borderBottom: '1px solid var(--receipt)' }}>
+        <p className="t-label" style={{ color: 'var(--caption)' }}>{title}</p>
       </div>
-      <ul className="divide-y divide-gray-50">
+      <ul>
         {transactions.map(t => {
           const cat = Array.isArray(t.category) ? t.category[0] : t.category
           const isEditing = editing === t.id
 
           if (isEditing) {
             return (
-              <li key={t.id} className="px-5 py-3 space-y-2 bg-gray-50/60">
+              <li key={t.id} className="px-5 py-3 space-y-2" style={{ background: 'var(--receipt)' }}>
                 <div className="grid grid-cols-2 gap-2">
                   <input
                     type="number"
@@ -178,27 +178,31 @@ function Section({
                     min="0.01"
                     value={editAmount}
                     onChange={e => setEditAmount(e.target.value)}
-                    className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="rounded-lg px-3 py-1.5 text-sm focus:outline-none"
+                    style={{ background: 'var(--cream)', border: '1px solid var(--receipt)', color: 'var(--ink)' }}
                     placeholder="Valor"
                   />
                   <input
                     type="date"
                     value={editDate}
                     onChange={e => setEditDate(e.target.value)}
-                    className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="rounded-lg px-3 py-1.5 text-sm focus:outline-none"
+                    style={{ background: 'var(--cream)', border: '1px solid var(--receipt)', color: 'var(--ink)' }}
                   />
                 </div>
                 <input
                   type="text"
                   value={editDescription}
                   onChange={e => setEditDescription(e.target.value)}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full rounded-lg px-3 py-1.5 text-sm focus:outline-none"
+                  style={{ background: 'var(--cream)', border: '1px solid var(--receipt)', color: 'var(--ink)' }}
                   placeholder="Descrição"
                 />
                 <select
                   value={editCategoryId}
                   onChange={e => setEditCategoryId(e.target.value)}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                  className="w-full rounded-lg px-3 py-1.5 text-sm focus:outline-none"
+                  style={{ background: 'var(--cream)', border: '1px solid var(--receipt)', color: 'var(--ink)' }}
                 >
                   <option value="">Categoria...</option>
                   {categories.map(c => (
@@ -208,14 +212,16 @@ function Section({
                 <div className="flex gap-2 justify-end">
                   <button
                     onClick={onCancelEdit}
-                    className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 px-2 py-1 rounded"
+                    className="flex items-center gap-1 text-xs px-2 py-1 rounded"
+                    style={{ color: 'var(--faint)' }}
                   >
                     <X size={12} /> Cancelar
                   </button>
                   <button
                     onClick={() => onSave(t.id)}
                     disabled={saving}
-                    className="flex items-center gap-1 text-xs text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 px-3 py-1 rounded-lg"
+                    className="flex items-center gap-1 text-xs px-3 py-1 rounded-lg disabled:opacity-50"
+                    style={{ background: 'var(--ganho)', color: 'var(--cream)' }}
                   >
                     <Check size={12} /> Salvar
                   </button>
@@ -225,36 +231,38 @@ function Section({
           }
 
           return (
-            <li key={t.id} className="flex items-center px-5 py-3 gap-3 hover:bg-gray-50/50 group">
+            <li
+              key={t.id}
+              className="flex items-center px-5 py-3 gap-3 group"
+              style={{ borderTop: '1px solid var(--receipt)' }}
+            >
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-800 truncate">
+                <p className="text-sm font-medium truncate" style={{ color: 'var(--ink)' }}>
                   {t.description || (cat?.custom_name ?? cat?.segment ?? '—')}
                 </p>
-                <p className="text-xs text-gray-400 mt-0.5">
+                <p className="t-meta mt-0.5">
                   {cat?.custom_name ?? cat?.segment} ·{' '}
                   {new Date(
                     (t.is_fixed ? `${month}-${t.date.split('-')[2]}` : t.date) + 'T00:00:00'
                   ).toLocaleDateString('pt-BR')}
                 </p>
               </div>
-              <span
-                className={`text-sm font-semibold tabular-nums ${
-                  t.type === 'income' ? 'text-green-600' : 'text-red-500'
-                }`}
-              >
+              <span className="t-value text-sm" style={{ color: t.type === 'income' ? 'var(--ganho)' : 'var(--gasto)' }}>
                 {t.type === 'income' ? '+' : '-'}
                 {Number(t.amount).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
               </span>
               <button
                 onClick={() => onStartEdit(t)}
-                className="opacity-0 group-hover:opacity-100 text-gray-300 hover:text-indigo-400 transition-all"
+                className="opacity-0 group-hover:opacity-100 transition-all"
+                style={{ color: 'var(--faint)' }}
               >
                 <Pencil size={14} />
               </button>
               <button
                 onClick={() => onDelete(t.id)}
                 disabled={deleting === t.id}
-                className="opacity-0 group-hover:opacity-100 text-gray-300 hover:text-red-400 transition-all disabled:opacity-50"
+                className="opacity-0 group-hover:opacity-100 transition-all disabled:opacity-50"
+                style={{ color: 'var(--faint)' }}
               >
                 <Trash2 size={14} />
               </button>

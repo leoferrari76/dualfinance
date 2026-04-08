@@ -106,8 +106,8 @@ export default function CreditCardList({ cards, installments, categories, month 
 
   if (cards.length === 0) {
     return (
-      <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center">
-        <p className="text-sm text-gray-400">Nenhum cartão cadastrado.</p>
+      <div className="rounded-2xl p-8 text-center" style={{ background: 'var(--cream)', boxShadow: 'var(--lift-1)' }}>
+        <p className="t-meta">Nenhum cartão cadastrado.</p>
       </div>
     )
   }
@@ -117,22 +117,22 @@ export default function CreditCardList({ cards, installments, categories, month 
   const hasRecurring = installments.some(i => i.is_recurring)
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {/* Totals summary */}
       {grandMonthly > 0 && (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm px-5 py-4 flex items-center justify-between gap-4">
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Total dos cartões</p>
+        <div className="rounded-2xl px-5 py-4 flex items-center justify-between gap-4" style={{ background: 'var(--cream)', boxShadow: 'var(--lift-1)' }}>
+          <p className="t-label" style={{ color: 'var(--caption)' }}>Total dos cartões</p>
           <div className="flex gap-6 text-right">
             <div>
-              <p className="text-[10px] text-gray-400 mb-0.5">Fatura do mês</p>
-              <p className="text-base font-bold text-red-500">{fmtBRL(grandMonthly)}</p>
+              <p className="t-meta mb-0.5">Fatura do mês</p>
+              <p className="t-value" style={{ color: 'var(--gasto)', fontSize: '15px' }}>{fmtBRL(grandMonthly)}</p>
             </div>
             {grandCommitted > 0 && (
               <div>
-                <p className="text-[10px] text-gray-400 mb-0.5">
+                <p className="t-meta mb-0.5">
                   Comprometido{hasRecurring ? ' (excl. recorrentes)' : ''}
                 </p>
-                <p className="text-base font-bold text-gray-700">{fmtBRL(grandCommitted)}</p>
+                <p className="t-value" style={{ color: 'var(--ink)', fontSize: '15px' }}>{fmtBRL(grandCommitted)}</p>
               </div>
             )}
           </div>
@@ -146,30 +146,29 @@ export default function CreditCardList({ cards, installments, categories, month 
         const cardHasRecurring = cardInstallments.some(i => i.is_recurring)
 
         return (
-          <div key={card.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-            <div className="flex items-center justify-between px-5 py-3 border-b border-gray-50">
+          <div key={card.id} className="rounded-2xl overflow-hidden" style={{ background: 'var(--cream)', boxShadow: 'var(--lift-1)' }}>
+            <div className="flex items-center justify-between px-5 py-3" style={{ borderBottom: '1px solid var(--receipt)' }}>
               <div>
-                <p className="text-sm font-semibold text-gray-800">{card.name}</p>
-                <p className="text-xs text-gray-400">Fecha dia {card.closing_day}</p>
+                <p className="text-sm font-medium" style={{ color: 'var(--ink)' }}>{card.name}</p>
+                <p className="t-meta">Fecha dia {card.closing_day}</p>
               </div>
               <div className="flex items-center gap-4">
                 {totalMonthly > 0 && (
                   <div className="text-right">
-                    <p className="text-[10px] text-gray-400">Fatura do mês</p>
-                    <p className="text-sm font-semibold text-red-500">{fmtBRL(totalMonthly)}</p>
+                    <p className="t-meta">Fatura do mês</p>
+                    <p className="t-value" style={{ color: 'var(--gasto)', fontSize: '13px' }}>{fmtBRL(totalMonthly)}</p>
                   </div>
                 )}
                 {committed > 0 && (
                   <div className="text-right">
-                    <p className="text-[10px] text-gray-400">
-                      Comprometido{cardHasRecurring ? '*' : ''}
-                    </p>
-                    <p className="text-sm font-semibold text-gray-600">{fmtBRL(committed)}</p>
+                    <p className="t-meta">Comprometido{cardHasRecurring ? '*' : ''}</p>
+                    <p className="t-value" style={{ color: 'var(--caption)', fontSize: '13px' }}>{fmtBRL(committed)}</p>
                   </div>
                 )}
                 <button
                   onClick={() => deleteCard(card.id)}
-                  className="text-gray-300 hover:text-red-400 transition-colors"
+                  className="transition-colors"
+                  style={{ color: 'var(--faint)' }}
                 >
                   <Trash2 size={14} />
                 </button>
@@ -177,7 +176,7 @@ export default function CreditCardList({ cards, installments, categories, month 
             </div>
 
             {cardInstallments.length > 0 ? (
-              <ul className="divide-y divide-gray-50">
+              <ul>
                 {cardInstallments.map(inst => {
                   const cat = Array.isArray(inst.category) ? inst.category[0] : inst.category
                   const start = new Date(inst.start_date + 'T00:00:00')
@@ -189,54 +188,59 @@ export default function CreditCardList({ cards, installments, categories, month 
 
                   if (editing === inst.id) {
                     return (
-                      <li key={inst.id} className="px-5 py-3 space-y-2 bg-gray-50/60">
+                      <li key={inst.id} className="px-5 py-3 space-y-2" style={{ background: 'var(--receipt)' }}>
                         <input
                           type="text"
                           value={editDescription}
                           onChange={e => setEditDescription(e.target.value)}
-                          className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          className="w-full rounded-lg px-3 py-1.5 text-sm focus:outline-none"
+                          style={{ background: 'var(--cream)', border: '1px solid var(--receipt)', color: 'var(--ink)' }}
                           placeholder="Descrição"
                         />
                         <div className="grid grid-cols-2 gap-2">
                           <div className="space-y-1">
-                            <label className="text-xs text-gray-500">Total (R$)</label>
+                            <label className="t-meta">Total (R$)</label>
                             <input
                               type="number"
                               step="0.01"
                               min="0.01"
                               value={editTotalAmount}
                               onChange={e => setEditTotalAmount(e.target.value)}
-                              className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                              className="w-full rounded-lg px-3 py-1.5 text-sm focus:outline-none"
+                              style={{ background: 'var(--cream)', border: '1px solid var(--receipt)', color: 'var(--ink)' }}
                             />
                           </div>
                           <div className="space-y-1">
-                            <label className="text-xs text-gray-500">Parcelas</label>
+                            <label className="t-meta">Parcelas</label>
                             <input
                               type="number"
                               min={1}
                               max={60}
                               value={editTotalInstallments}
                               onChange={e => setEditTotalInstallments(e.target.value)}
-                              className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                              className="w-full rounded-lg px-3 py-1.5 text-sm focus:outline-none"
+                              style={{ background: 'var(--cream)', border: '1px solid var(--receipt)', color: 'var(--ink)' }}
                             />
                           </div>
                         </div>
                         <div className="grid grid-cols-2 gap-2">
                           <div className="space-y-1">
-                            <label className="text-xs text-gray-500">Início</label>
+                            <label className="t-meta">Início</label>
                             <input
                               type="date"
                               value={editStartDate}
                               onChange={e => setEditStartDate(e.target.value)}
-                              className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                              className="w-full rounded-lg px-3 py-1.5 text-sm focus:outline-none"
+                              style={{ background: 'var(--cream)', border: '1px solid var(--receipt)', color: 'var(--ink)' }}
                             />
                           </div>
                           <div className="space-y-1">
-                            <label className="text-xs text-gray-500">Categoria</label>
+                            <label className="t-meta">Categoria</label>
                             <select
                               value={editCategoryId}
                               onChange={e => setEditCategoryId(e.target.value)}
-                              className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                              className="w-full rounded-lg px-3 py-1.5 text-sm focus:outline-none"
+                              style={{ background: 'var(--cream)', border: '1px solid var(--receipt)', color: 'var(--ink)' }}
                             >
                               <option value="">Selecione...</option>
                               {categories.map(c => (
@@ -246,7 +250,7 @@ export default function CreditCardList({ cards, installments, categories, month 
                           </div>
                         </div>
                         {editTotalAmount && editTotalInstallments && parseInt(editTotalInstallments) > 1 && (
-                          <p className="text-xs text-indigo-600 font-medium">
+                          <p className="text-xs font-medium" style={{ color: 'var(--reserva)' }}>
                             {editTotalInstallments}x de{' '}
                             {(parseFloat(editTotalAmount) / parseInt(editTotalInstallments)).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                           </p>
@@ -254,14 +258,16 @@ export default function CreditCardList({ cards, installments, categories, month 
                         <div className="flex gap-2 justify-end">
                           <button
                             onClick={cancelEdit}
-                            className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 px-2 py-1 rounded"
+                            className="flex items-center gap-1 text-xs px-2 py-1 rounded"
+                            style={{ color: 'var(--faint)' }}
                           >
                             <X size={12} /> Cancelar
                           </button>
                           <button
                             onClick={() => handleSave(inst.id)}
                             disabled={saving}
-                            className="flex items-center gap-1 text-xs text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 px-3 py-1 rounded-lg"
+                            className="flex items-center gap-1 text-xs px-3 py-1 rounded-lg disabled:opacity-50"
+                            style={{ background: 'var(--ganho)', color: 'var(--cream)' }}
                           >
                             <Check size={12} /> Salvar
                           </button>
@@ -271,10 +277,14 @@ export default function CreditCardList({ cards, installments, categories, month 
                   }
 
                   return (
-                    <li key={inst.id} className="flex items-center px-5 py-3 gap-3 group hover:bg-gray-50/50">
+                    <li
+                      key={inst.id}
+                      className="flex items-center px-5 py-3 gap-3 group"
+                      style={{ borderTop: '1px solid var(--receipt)' }}
+                    >
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-800 truncate">{inst.description}</p>
-                        <p className="text-xs text-gray-400 mt-0.5">
+                        <p className="text-sm font-medium truncate" style={{ color: 'var(--ink)' }}>{inst.description}</p>
+                        <p className="t-meta mt-0.5">
                           {cat?.custom_name ?? cat?.segment} ·{' '}
                           {inst.is_recurring
                             ? 'recorrente'
@@ -284,15 +294,15 @@ export default function CreditCardList({ cards, installments, categories, month 
                         </p>
                       </div>
                       <div className="text-right shrink-0">
-                        <p className="text-sm font-semibold text-red-500">
+                        <p className="t-value" style={{ color: 'var(--gasto)', fontSize: '13px' }}>
                           {Number(inst.per_installment_amount).toLocaleString('pt-BR', {
                             style: 'currency',
                             currency: 'BRL',
                           })}
-                          {!isAvista && !inst.is_recurring && <span className="text-xs font-normal text-gray-400">/parc.</span>}
+                          {!isAvista && !inst.is_recurring && <span className="text-xs font-normal" style={{ color: 'var(--faint)' }}>/parc.</span>}
                         </p>
                         {!isAvista && !inst.is_recurring && (
-                          <p className="text-xs text-gray-400">
+                          <p className="t-meta">
                             total{' '}
                             {Number(inst.total_amount).toLocaleString('pt-BR', {
                               style: 'currency',
@@ -303,13 +313,15 @@ export default function CreditCardList({ cards, installments, categories, month 
                       </div>
                       <button
                         onClick={() => startEdit(inst)}
-                        className="opacity-0 group-hover:opacity-100 text-gray-300 hover:text-indigo-400 transition-all"
+                        className="opacity-0 group-hover:opacity-100 transition-all"
+                        style={{ color: 'var(--faint)' }}
                       >
                         <Pencil size={14} />
                       </button>
                       <button
                         onClick={() => deleteInstallment(inst.id)}
-                        className="opacity-0 group-hover:opacity-100 text-gray-300 hover:text-red-400 transition-all"
+                        className="opacity-0 group-hover:opacity-100 transition-all"
+                        style={{ color: 'var(--faint)' }}
                       >
                         <Trash2 size={14} />
                       </button>
@@ -318,7 +330,7 @@ export default function CreditCardList({ cards, installments, categories, month 
                 })}
               </ul>
             ) : (
-              <p className="px-5 py-3 text-xs text-gray-400">Sem compras.</p>
+              <p className="px-5 py-3 t-meta">Sem compras.</p>
             )}
           </div>
         )

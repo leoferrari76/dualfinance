@@ -28,11 +28,9 @@ export default function ForecastChart({ months }: { months: ForecastMonth[] }) {
 
   if (!hasData) {
     return (
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 mb-8">
-        <p className="text-sm font-semibold text-gray-700 mb-1">Previsão — próximos 6 meses</p>
-        <p className="text-sm text-gray-400 py-6 text-center">
-          Adicione entradas e saídas para ver a previsão.
-        </p>
+      <div className="rounded-2xl p-5 mb-6" style={{ background: 'var(--cream)', boxShadow: 'var(--lift-1)' }}>
+        <p className="t-label mb-1" style={{ color: 'var(--caption)' }}>Previsão — próximos 6 meses</p>
+        <p className="t-meta py-6 text-center">Adicione entradas e saídas para ver a previsão.</p>
       </div>
     )
   }
@@ -66,24 +64,24 @@ export default function ForecastChart({ months }: { months: ForecastMonth[] }) {
   }).join(' ')
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 mb-8">
-      <p className="text-sm font-semibold text-gray-700 mb-0.5">Previsão — próximos 6 meses</p>
-      <p className="text-xs text-gray-400 mb-4">
+    <div className="rounded-2xl p-5 mb-6" style={{ background: 'var(--cream)', boxShadow: 'var(--lift-1)' }}>
+      <p className="t-label mb-0.5" style={{ color: 'var(--caption)' }}>Previsão — próximos 6 meses</p>
+      <p className="t-meta mb-4">
         Baseado na renda e gastos do mês selecionado + parcelas futuras do cartão
       </p>
 
       {/* Legend */}
-      <div className="flex flex-wrap gap-4 mb-3 text-xs text-gray-500">
+      <div className="flex flex-wrap gap-4 mb-3 text-xs" style={{ color: 'var(--caption)' }}>
         <span className="flex items-center gap-1.5">
-          <span className="inline-block w-3 h-3 rounded-sm bg-indigo-200" />
+          <span className="inline-block w-3 h-3 rounded-sm" style={{ background: '#D4895A' }} />
           Gastos normais
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="inline-block w-3 h-3 rounded-sm bg-indigo-500" />
+          <span className="inline-block w-3 h-3 rounded-sm" style={{ background: 'var(--gasto)' }} />
           Cartão
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="inline-block w-4 border-t-2 border-dashed border-emerald-500" />
+          <span className="inline-block w-4" style={{ borderTop: '2px dashed var(--ganho)' }} />
           Renda
         </span>
       </div>
@@ -123,7 +121,7 @@ export default function ForecastChart({ months }: { months: ForecastMonth[] }) {
                 <rect
                   x={ML + i * slotW} y={MT}
                   width={slotW} height={PH}
-                  fill="#f9fafb" rx="0"
+                  fill="rgba(27,25,22,0.03)" rx="0"
                 />
               )}
 
@@ -132,7 +130,7 @@ export default function ForecastChart({ months }: { months: ForecastMonth[] }) {
                 <rect
                   x={bx} y={sy(m.normalExpenses)}
                   width={bw} height={normalH}
-                  fill="#c7d2fe" rx="2"
+                  fill="#D4895A" rx="2"
                 />
               )}
 
@@ -141,7 +139,7 @@ export default function ForecastChart({ months }: { months: ForecastMonth[] }) {
                 <rect
                   x={bx} y={sy(totalExp)}
                   width={bw} height={cardH}
-                  fill="#6366f1" rx="2"
+                  fill="#B55928" rx="2"
                 />
               )}
 
@@ -149,7 +147,7 @@ export default function ForecastChart({ months }: { months: ForecastMonth[] }) {
               <text
                 x={cx} y={H - MB + 14}
                 textAnchor="middle" fontSize="10"
-                fill={isFirst ? '#374151' : '#6b7280'}
+                fill={isFirst ? '#1B1916' : '#6B6459'}
                 fontWeight={isFirst ? '600' : '400'}
               >
                 {monthLabel(m.month)}
@@ -161,7 +159,7 @@ export default function ForecastChart({ months }: { months: ForecastMonth[] }) {
         {/* Income dashed line */}
         <polyline
           points={incomePoints}
-          fill="none" stroke="#10b981"
+          fill="none" stroke="#38694F"
           strokeWidth="2" strokeDasharray="5 3"
         />
 
@@ -172,7 +170,7 @@ export default function ForecastChart({ months }: { months: ForecastMonth[] }) {
             <circle
               key={m.month}
               cx={cx} cy={sy(m.income)}
-              r="3" fill="#10b981" stroke="white" strokeWidth="1.5"
+              r="3" fill="#38694F" stroke="#FEFCF7" strokeWidth="1.5"
             />
           )
         })}
@@ -184,20 +182,21 @@ export default function ForecastChart({ months }: { months: ForecastMonth[] }) {
           <div
             key={m.month}
             title={`Renda: ${fmtBRL(m.income)}\nGastos: ${fmtBRL(m.normalExpenses + m.cardExpenses)}\nSaldo: ${fmtBRL(m.balance)}`}
-            className={`text-center px-1 py-2 rounded-xl text-xs ${
-              m.balance >= 0
-                ? 'bg-emerald-50 text-emerald-700'
-                : 'bg-red-50 text-red-600'
-            } ${i === 0 ? 'ring-1 ring-gray-200' : ''}`}
+            className="text-center px-1 py-2 rounded-xl"
+            style={{
+              background: m.balance >= 0 ? 'rgba(56,105,79,0.08)' : 'rgba(181,89,40,0.08)',
+              color: m.balance >= 0 ? 'var(--ganho)' : 'var(--gasto)',
+              outline: i === 0 ? '1px solid var(--receipt)' : 'none',
+            }}
           >
-            <p className="text-[10px] text-gray-400 mb-0.5">{monthLabel(m.month)}</p>
-            <p className="font-semibold leading-tight">
+            <p className="t-meta mb-0.5" style={{ color: 'var(--faint)' }}>{monthLabel(m.month)}</p>
+            <p className="text-xs font-semibold leading-tight">
               {m.balance >= 0 ? '+' : ''}{fmtShort(m.balance)}
             </p>
           </div>
         ))}
       </div>
-      <p className="text-[10px] text-gray-300 mt-2 text-right">
+      <p className="t-meta mt-2 text-right" style={{ color: 'var(--faint)' }}>
         Passe o mouse nos cards para ver o detalhamento
       </p>
     </div>

@@ -1,26 +1,68 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+  /* Surfaces */
+  --parchment: #F4F0E8;
+  --cream:     #FEFCF7;
+  --receipt:   #EBE6DB;
+  --chumbo:    #1B1916;
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  /* Text */
+  --ink:       #1B1916;
+  --caption:   #6B6459;
+  --faint:     #A09A8E;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  /* Semantic */
+  --gasto:     #B55928;
+  --ganho:     #38694F;
+  --reserva:   #9B7845;
+  --ledger:    #C8A96E;
+
+  /* Shadows */
+  --lift-0: none;
+  --lift-1: 0 1px 3px rgba(27, 25, 22, 0.08);
+  --lift-2: 0 4px 12px rgba(27, 25, 22, 0.10);
+
+  /* Fonts */
+  --font-display: var(--font-fraunces), Georgia, serif;
+  --font-mono:    var(--font-dm-mono), "Courier New", monospace;
+  --font-body:    var(--font-instrument), system-ui, sans-serif;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--parchment);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 14px;
+}
+
+/* Typography scale */
+.t-display {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 400;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.t-value {
+  font-family: var(--font-mono);
+  font-size: 16px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.t-label {
+  font-family: var(--font-body);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.t-meta {
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--caption);
 }

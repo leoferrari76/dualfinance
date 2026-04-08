@@ -195,13 +195,18 @@ export default async function DashboardPage({
   })
 
   const hasPartnerData = (partnerTransactions?.length ?? 0) > 0
+  const myName = profile?.name ?? 'Você'
+
+  // Split bar percentages
+  const myIncomePct = combined.income > 0 ? (mine.income / combined.income) * 100 : (partnerName ? 50 : 100)
+  const partnerIncomePct = 100 - myIncomePct
 
   return (
     <div className="p-8 max-w-4xl">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Visão geral das finanças</p>
+          <p className="t-label" style={{ color: 'var(--caption)' }}>Visão geral</p>
+          <h1 className="text-xl font-semibold" style={{ color: 'var(--ink)' }}>Dashboard</h1>
         </div>
         <div className="flex items-center gap-3">
           <MonthPicker value={month} />
@@ -210,32 +215,62 @@ export default async function DashboardPage({
       </div>
 
       {partnerName && !hasPartnerData && (
-        <p className="text-xs text-amber-600 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2 mb-4">
+        <p className="text-xs rounded-xl px-3 py-2 mb-4" style={{ color: 'var(--reserva)', background: 'rgba(155,120,69,0.08)', border: '1px solid rgba(155,120,69,0.2)' }}>
           Os totais abaixo incluem apenas seus dados — {partnerName} está com dados privados.
         </p>
       )}
 
+      {/* Hero: Saldo + couple split */}
+      <div className="rounded-2xl p-6 mb-6" style={{ background: 'var(--chumbo)', boxShadow: 'var(--lift-2)' }}>
+        <p className="t-label mb-1" style={{ color: 'var(--faint)' }}>
+          {hasPartnerData ? 'Saldo do casal' : 'Meu saldo'}
+        </p>
+        <p className="t-display mb-5" style={{ color: totalBalance >= 0 ? 'var(--ganho)' : 'var(--gasto)', filter: 'brightness(1.4)' }}>
+          {totalBalance.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+        </p>
+
+        {/* Income split bar */}
+        <p className="t-label mb-2" style={{ color: 'var(--faint)' }}>Composição da renda</p>
+        <div className="flex rounded-full overflow-hidden h-2 mb-3" style={{ background: 'rgba(255,255,255,0.1)' }}>
+          <div style={{ width: `${myIncomePct}%`, background: 'var(--ganho)' }} />
+          {partnerName && (
+            <div style={{ width: `${partnerIncomePct}%`, background: 'var(--reserva)' }} />
+          )}
+        </div>
+        <div className="flex gap-6">
+          <div>
+            <p className="t-meta" style={{ color: 'var(--faint)' }}>{myName}</p>
+            <p className="t-value" style={{ color: 'var(--ganho)', filter: 'brightness(1.3)' }}>
+              {mine.income.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+            </p>
+          </div>
+          {partnerName && (
+            <div>
+              <p className="t-meta" style={{ color: 'var(--faint)' }}>{partnerName}</p>
+              <p className="t-value" style={{ color: hasPartnerData ? 'var(--reserva)' : 'var(--faint)', filter: hasPartnerData ? 'brightness(1.3)' : 'none' }}>
+                {hasPartnerData ? partner.income.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : 'Privado'}
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* Summary cards */}
-      <div className="grid grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-2 gap-4 mb-6">
         <SummaryCard
           label={hasPartnerData ? 'Entradas do casal' : 'Minhas entradas'}
           value={combined.income}
-          color="green"
+          type="income"
         />
         <SummaryCard
           label={hasPartnerData ? 'Saídas do casal' : 'Minhas saídas'}
           value={totalExpenses}
-          color="red"
+          type="expense"
           subtitle={
             cardExpenses > 0
               ? `Transações ${combined.expenses.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} · Cartão ${cardExpenses.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`
               : undefined
           }
-        />
-        <SummaryCard
-          label={hasPartnerData ? 'Saldo do casal' : 'Meu saldo'}
-          value={totalBalance}
-          color={totalBalance >= 0 ? 'indigo' : 'red'}
         />
       </div>
 
@@ -253,46 +288,46 @@ export default async function DashboardPage({
       <ForecastChart months={forecastData} />
 
       {/* Individual summaries */}
-      <div className="grid grid-cols-2 gap-4 mb-8">
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-          <p className="text-sm font-semibold text-gray-700 mb-3">Meu resumo</p>
-          <div className="space-y-2 text-sm">
-            <Row label="Entradas" value={mine.income} color="green" />
-            <Row label="Saídas" value={mine.expenses} color="red" />
-            <div className="border-t border-gray-100 pt-2">
-              <Row label="Saldo" value={mine.balance} color={mine.balance >= 0 ? 'indigo' : 'red'} bold />
+      <div className="grid grid-cols-2 gap-4 mb-6">
+        <div className="rounded-2xl p-5" style={{ background: 'var(--cream)', boxShadow: 'var(--lift-1)' }}>
+          <p className="t-label mb-3" style={{ color: 'var(--caption)' }}>{myName}</p>
+          <div className="space-y-2">
+            <Row label="Entradas" value={mine.income} type="income" />
+            <Row label="Saídas" value={mine.expenses} type="expense" />
+            <div className="pt-2" style={{ borderTop: '1px solid var(--receipt)' }}>
+              <Row label="Saldo" value={mine.balance} type={mine.balance >= 0 ? 'balance' : 'expense'} bold />
             </div>
           </div>
         </div>
 
         {partnerName && (
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-            <p className="text-sm font-semibold text-gray-700 mb-3">{partnerName}</p>
+          <div className="rounded-2xl p-5" style={{ background: 'var(--cream)', boxShadow: 'var(--lift-1)' }}>
+            <p className="t-label mb-3" style={{ color: 'var(--caption)' }}>{partnerName}</p>
             {hasPartnerData ? (
-              <div className="space-y-2 text-sm">
-                <Row label="Entradas" value={partner.income} color="green" />
-                <Row label="Saídas" value={partner.expenses} color="red" />
-                <div className="border-t border-gray-100 pt-2">
-                  <Row label="Saldo" value={partner.balance} color={partner.balance >= 0 ? 'indigo' : 'red'} bold />
+              <div className="space-y-2">
+                <Row label="Entradas" value={partner.income} type="income" />
+                <Row label="Saídas" value={partner.expenses} type="expense" />
+                <div className="pt-2" style={{ borderTop: '1px solid var(--receipt)' }}>
+                  <Row label="Saldo" value={partner.balance} type={partner.balance >= 0 ? 'balance' : 'expense'} bold />
                 </div>
               </div>
             ) : (
-              <p className="text-sm text-gray-400">Dados privados</p>
+              <p className="text-sm" style={{ color: 'var(--faint)' }}>Dados privados</p>
             )}
           </div>
         )}
       </div>
 
       {bySegment.length > 0 && (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-          <p className="text-sm font-semibold text-gray-700 mb-4">Por segmento</p>
+        <div className="rounded-2xl p-5" style={{ background: 'var(--cream)', boxShadow: 'var(--lift-1)' }}>
+          <p className="t-label mb-4" style={{ color: 'var(--caption)' }}>Por segmento</p>
           <div className="space-y-3">
             {bySegment.map(({ segment, income, expenses }) => (
               <div key={segment} className="flex items-center gap-4">
-                <span className="text-sm text-gray-600 w-28">{segment}</span>
+                <span className="text-sm w-28" style={{ color: 'var(--caption)' }}>{segment}</span>
                 <div className="flex-1 flex gap-3 text-xs">
-                  {income > 0 && <span className="text-green-600">+{income.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>}
-                  {expenses > 0 && <span className="text-red-500">-{expenses.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>}
+                  {income > 0 && <span style={{ color: 'var(--ganho)' }}>+{income.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>}
+                  {expenses > 0 && <span style={{ color: 'var(--gasto)' }}>-{expenses.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>}
                 </div>
               </div>
             ))}
@@ -306,42 +341,34 @@ export default async function DashboardPage({
 function SummaryCard({
   label,
   value,
-  color,
+  type,
   subtitle,
 }: {
   label: string
   value: number
-  color: string
+  type: 'income' | 'expense' | 'balance'
   subtitle?: string
 }) {
-  const colorMap: Record<string, string> = {
-    green: 'text-green-600',
-    red: 'text-red-500',
-    indigo: 'text-indigo-600',
-  }
+  const colorMap = { income: 'var(--ganho)', expense: 'var(--gasto)', balance: 'var(--reserva)' }
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-      <p className="text-xs text-gray-500 mb-1">{label}</p>
-      <p className={`text-xl font-bold ${colorMap[color]}`}>
+    <div className="rounded-2xl p-5" style={{ background: 'var(--cream)', boxShadow: 'var(--lift-1)' }}>
+      <p className="t-label mb-2" style={{ color: 'var(--caption)' }}>{label}</p>
+      <p className="t-value" style={{ color: colorMap[type], fontSize: '18px' }}>
         {value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
       </p>
       {subtitle && (
-        <p className="text-[10px] text-gray-400 mt-1 leading-tight">{subtitle}</p>
+        <p className="t-meta mt-1 leading-tight">{subtitle}</p>
       )}
     </div>
   )
 }
 
-function Row({ label, value, color, bold }: { label: string; value: number; color: string; bold?: boolean }) {
-  const colorMap: Record<string, string> = {
-    green: 'text-green-600',
-    red: 'text-red-500',
-    indigo: 'text-indigo-600',
-  }
+function Row({ label, value, type, bold }: { label: string; value: number; type: 'income' | 'expense' | 'balance'; bold?: boolean }) {
+  const colorMap = { income: 'var(--ganho)', expense: 'var(--gasto)', balance: 'var(--reserva)' }
   return (
-    <div className={`flex justify-between ${bold ? 'font-semibold' : ''}`}>
-      <span className="text-gray-500">{label}</span>
-      <span className={colorMap[color]}>
+    <div className="flex justify-between items-center">
+      <span className="text-sm" style={{ color: 'var(--caption)', fontWeight: bold ? 500 : 400 }}>{label}</span>
+      <span className="t-value" style={{ color: colorMap[type], fontSize: '13px' }}>
         {value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
       </span>
     </div>
