@@ -89,7 +89,7 @@ export default async function AnalisePage({
       .in('credit_card_id', cardIds)
       .lte('start_date', startDate)
       .gte('end_date', startDate)
-    installmentRows = (insts ?? []) as InstRow[]
+    installmentRows = (insts ?? []) as unknown as InstRow[]
   }
 
   // ── Build breakdown ───────────────────────────────────────────────────────
