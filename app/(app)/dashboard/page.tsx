@@ -44,7 +44,7 @@ export default async function DashboardPage({
   // Current month transactions
   const { data: myTransactions } = await supabase
     .from('transactions')
-    .select('type, amount, is_fixed, category:categories(segment)')
+    .select('type, amount, is_fixed, category:categories(id, segment, custom_name)')
     .eq('user_id', user.id)
     .or(`and(is_fixed.eq.false,date.gte.${startDate},date.lte.${endDate}),and(is_fixed.eq.true,date.lte.${endDate})`)
 
@@ -83,7 +83,7 @@ export default async function DashboardPage({
       if (partnerSharing) {
         const { data: pt } = await supabase
           .from('transactions')
-          .select('type, amount, is_fixed, category:categories(segment)')
+          .select('type, amount, is_fixed, category:categories(id, segment, custom_name)')
           .eq('user_id', partnerId)
           .or(`and(is_fixed.eq.false,date.gte.${startDate},date.lte.${endDate}),and(is_fixed.eq.true,date.lte.${endDate})`)
         partnerTransactions = pt ?? []
@@ -172,7 +172,22 @@ export default async function DashboardPage({
     })
     const income = txs.filter(t => t.type === 'income').reduce((s, t) => s + Number(t.amount), 0)
     const expenses = txs.filter(t => t.type === 'expense').reduce((s, t) => s + Number(t.amount), 0)
-    return { segment, income, expenses }
+
+    // Group by subcategory
+    const subcatMap = new Map<string, { name: string; income: number; expenses: number }>()
+    for (const tx of txs) {
+      const cat = Array.isArray(tx.category) ? tx.category[0] : tx.category
+      if (!cat) continue
+      const key = cat.id as string
+      const name = (cat.custom_name ?? cat.segment) as string
+      if (!subcatMap.has(key)) subcatMap.set(key, { name, income: 0, expenses: 0 })
+      const entry = subcatMap.get(key)!
+      if (tx.type === 'income') entry.income += Number(tx.amount)
+      else entry.expenses += Number(tx.amount)
+    }
+    const subcats = Array.from(subcatMap.values()).sort((a, b) => b.expenses - a.expenses)
+
+    return { segment, income, expenses, subcats }
   }).filter(s => s.income > 0 || s.expenses > 0)
 
   const isCurrentMonth = month === currentMonth()
@@ -319,19 +334,37 @@ export default async function DashboardPage({
       </div>
 
       {bySegment.length > 0 && (
-        <div className="rounded-2xl p-5" style={{ background: 'var(--cream)', boxShadow: 'var(--lift-1)' }}>
-          <p className="t-label mb-4" style={{ color: 'var(--caption)' }}>Por segmento</p>
-          <div className="space-y-3">
-            {bySegment.map(({ segment, income, expenses }) => (
-              <div key={segment} className="flex items-center gap-4">
-                <span className="text-sm w-28" style={{ color: 'var(--caption)' }}>{segment}</span>
-                <div className="flex-1 flex gap-3 text-xs">
+        <div className="rounded-2xl overflow-hidden" style={{ background: 'var(--cream)', boxShadow: 'var(--lift-1)' }}>
+          <p className="t-label px-5 pt-5 pb-3" style={{ color: 'var(--caption)' }}>Por categoria</p>
+          {bySegment.map(({ segment, income, expenses, subcats }, si) => (
+            <div key={segment} style={{ borderTop: si === 0 ? 'none' : '1px solid var(--receipt)' }}>
+              {/* Segment header */}
+              <div className="flex items-center justify-between px-5 py-3">
+                <span className="text-sm font-medium" style={{ color: 'var(--ink)' }}>{segment}</span>
+                <div className="flex gap-3 text-xs">
                   {income > 0 && <span style={{ color: 'var(--ganho)' }}>+{income.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>}
                   {expenses > 0 && <span style={{ color: 'var(--gasto)' }}>-{expenses.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>}
                 </div>
               </div>
-            ))}
-          </div>
+              {/* Subcategories */}
+              {subcats.map((sub, ci) => (
+                <div
+                  key={ci}
+                  className="flex items-center justify-between px-5 py-2"
+                  style={{ borderTop: '1px solid var(--receipt)', background: 'rgba(27,25,22,0.02)' }}
+                >
+                  <span className="text-xs" style={{ color: 'var(--caption)', paddingLeft: '12px' }}>
+                    — {sub.name}
+                  </span>
+                  <div className="flex gap-3 text-xs">
+                    {sub.income > 0 && <span style={{ color: 'var(--ganho)' }}>+{sub.income.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>}
+                    {sub.expenses > 0 && <span style={{ color: 'var(--gasto)' }}>-{sub.expenses.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ))}
+          <div className="pb-2" />
         </div>
       )}
     </div>
