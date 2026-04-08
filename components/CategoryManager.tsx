@@ -47,22 +47,20 @@ export default function CategoryManager({ userId, categories, segments }: Props)
         const isAdding = addingTo === segment
 
         return (
-          <div key={segment} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-            <div className="flex items-center justify-between px-5 py-3 border-b border-gray-50">
-              <p className="text-sm font-semibold text-gray-800">{segment}</p>
+          <div key={segment} className="rounded-2xl overflow-hidden" style={{ background: 'var(--cream)', boxShadow: 'var(--lift-1)' }}>
+            <div className="flex items-center justify-between px-5 py-3" style={{ borderBottom: '1px solid var(--receipt)' }}>
+              <p className="text-sm font-medium" style={{ color: 'var(--ink)' }}>{segment}</p>
               <button
-                onClick={() => {
-                  setAddingTo(isAdding ? null : segment)
-                  setCustomName('')
-                }}
-                className="text-gray-400 hover:text-indigo-600 transition-colors"
+                onClick={() => { setAddingTo(isAdding ? null : segment); setCustomName('') }}
+                className="transition-colors"
+                style={{ color: 'var(--faint)' }}
               >
                 <Plus size={15} />
               </button>
             </div>
 
             {isAdding && (
-              <div className="flex gap-2 px-5 py-3 border-b border-gray-50 bg-indigo-50/30">
+              <div className="flex gap-2 px-5 py-3" style={{ borderBottom: '1px solid var(--receipt)', background: 'var(--receipt)' }}>
                 <input
                   type="text"
                   value={customName}
@@ -73,12 +71,14 @@ export default function CategoryManager({ userId, categories, segments }: Props)
                     if (e.key === 'Enter') { e.preventDefault(); handleAdd(segment) }
                     if (e.key === 'Escape') { setAddingTo(null) }
                   }}
-                  className="flex-1 border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="flex-1 rounded-xl px-3 py-1.5 text-sm focus:outline-none"
+                  style={{ background: 'var(--cream)', color: 'var(--ink)', border: '1px solid transparent' }}
                 />
                 <button
                   onClick={() => handleAdd(segment)}
                   disabled={loading || !customName.trim()}
-                  className="bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white px-3 py-1.5 rounded-lg text-sm transition-colors"
+                  className="disabled:opacity-50 px-3 py-1.5 rounded-xl text-sm transition-colors"
+                  style={{ background: 'var(--chumbo)', color: 'var(--ledger)' }}
                 >
                   Adicionar
                 </button>
@@ -86,13 +86,15 @@ export default function CategoryManager({ userId, categories, segments }: Props)
             )}
 
             {customCats.length > 0 ? (
-              <ul className="divide-y divide-gray-50">
+              <ul>
                 {customCats.map(cat => (
-                  <li key={cat.id} className="flex items-center justify-between px-5 py-2.5 group hover:bg-gray-50/50">
-                    <span className="text-sm text-gray-700">{cat.custom_name}</span>
+                  <li key={cat.id} className="flex items-center justify-between px-5 py-2.5 group"
+                    style={{ borderTop: '1px solid var(--receipt)' }}>
+                    <span className="text-sm" style={{ color: 'var(--ink)' }}>{cat.custom_name}</span>
                     <button
                       onClick={() => handleDelete(cat.id)}
-                      className="opacity-0 group-hover:opacity-100 text-gray-300 hover:text-red-400 transition-all"
+                      className="opacity-0 group-hover:opacity-100 transition-all"
+                      style={{ color: 'var(--faint)' }}
                     >
                       <Trash2 size={13} />
                     </button>
@@ -101,7 +103,7 @@ export default function CategoryManager({ userId, categories, segments }: Props)
               </ul>
             ) : (
               !isAdding && (
-                <p className="px-5 py-2.5 text-xs text-gray-400">
+                <p className="px-5 py-2.5 t-meta">
                   Nenhum nome personalizado. Clique em + para adicionar.
                 </p>
               )

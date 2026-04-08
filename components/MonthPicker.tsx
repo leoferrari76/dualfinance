@@ -31,7 +31,8 @@ export default function MonthPicker({ value }: { value: string }) {
     <div className="flex items-center gap-1">
       <button
         onClick={() => shift(-1)}
-        className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+        className="p-1.5 rounded-lg transition-colors"
+        style={{ color: 'var(--faint)' }}
       >
         <ChevronLeft size={16} />
       </button>
@@ -45,14 +46,16 @@ export default function MonthPicker({ value }: { value: string }) {
       />
       <label
         htmlFor="month-input"
-        className="px-3 py-1.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 cursor-pointer capitalize transition-colors min-w-36 text-center"
+        className="px-3 py-1.5 rounded-lg text-sm font-medium cursor-pointer capitalize transition-colors min-w-36 text-center"
+        style={{ color: 'var(--ink)', background: 'var(--receipt)' }}
       >
         {label}
       </label>
 
       <button
         onClick={() => shift(1)}
-        className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+        className="p-1.5 rounded-lg transition-colors"
+        style={{ color: 'var(--faint)' }}
       >
         <ChevronRight size={16} />
       </button>

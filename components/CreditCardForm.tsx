@@ -4,6 +4,12 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
+const inputStyle = {
+  background: 'var(--receipt)',
+  border: '1px solid transparent',
+  color: 'var(--ink)',
+} as React.CSSProperties
+
 export default function CreditCardForm({ userId }: { userId: string }) {
   const router = useRouter()
   const [name, setName] = useState('')
@@ -11,7 +17,7 @@ export default function CreditCardForm({ userId }: { userId: string }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.SyntheticEvent) {
     e.preventDefault()
     setError('')
     setLoading(true)
@@ -36,25 +42,26 @@ export default function CreditCardForm({ userId }: { userId: string }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-4">
-      <p className="text-sm font-semibold text-gray-800">Novo cartão</p>
+    <form onSubmit={handleSubmit} className="rounded-2xl p-5 space-y-4" style={{ background: 'var(--cream)', boxShadow: 'var(--lift-1)' }}>
+      <p className="t-label" style={{ color: 'var(--caption)' }}>Novo cartão</p>
 
-      {error && <p className="text-xs text-red-500 bg-red-50 px-3 py-2 rounded-lg">{error}</p>}
+      {error && <p className="text-xs px-3 py-2 rounded-xl" style={{ color: 'var(--gasto)', background: 'rgba(181,89,40,0.08)' }}>{error}</p>}
 
       <div className="space-y-1">
-        <label className="text-xs font-medium text-gray-600">Nome do cartão</label>
+        <label className="t-meta">Nome do cartão</label>
         <input
           type="text"
           value={name}
           onChange={e => setName(e.target.value)}
           required
           placeholder="Ex: Nubank"
-          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          className="w-full rounded-xl px-3 py-2 text-sm focus:outline-none"
+          style={inputStyle}
         />
       </div>
 
       <div className="space-y-1">
-        <label className="text-xs font-medium text-gray-600">Dia de fechamento</label>
+        <label className="t-meta">Dia de fechamento</label>
         <input
           type="number"
           min={1}
@@ -63,14 +70,16 @@ export default function CreditCardForm({ userId }: { userId: string }) {
           onChange={e => setClosingDay(e.target.value)}
           required
           placeholder="Ex: 10"
-          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          className="w-full rounded-xl px-3 py-2 text-sm focus:outline-none"
+          style={inputStyle}
         />
       </div>
 
       <button
         type="submit"
         disabled={loading}
-        className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-medium py-2 rounded-lg text-sm transition-colors"
+        className="w-full disabled:opacity-50 font-medium py-2 rounded-xl text-sm transition-colors"
+        style={{ background: 'var(--chumbo)', color: 'var(--ledger)' }}
       >
         {loading ? 'Salvando...' : 'Adicionar cartão'}
       </button>

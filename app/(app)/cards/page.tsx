@@ -48,8 +48,8 @@ export default async function CardsPage({
     <div className="p-8 max-w-4xl">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Cartões de crédito</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Parcelas ativas no mês</p>
+          <p className="t-label" style={{ color: 'var(--caption)' }}>Cartões de crédito</p>
+          <h1 className="text-xl font-semibold" style={{ color: 'var(--ink)' }}>Parcelas ativas no mês</h1>
         </div>
         <MonthPicker value={month} />
       </div>

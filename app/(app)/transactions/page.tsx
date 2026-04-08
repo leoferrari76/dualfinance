@@ -40,8 +40,8 @@ export default async function TransactionsPage({
     <div className="p-8 max-w-4xl">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Lançamentos</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Ganhos e gastos fixos e avulsos</p>
+          <p className="t-label" style={{ color: 'var(--caption)' }}>Lançamentos</p>
+          <h1 className="text-xl font-semibold" style={{ color: 'var(--ink)' }}>Ganhos e gastos fixos e avulsos</h1>
         </div>
         <MonthPicker value={month} />
       </div>

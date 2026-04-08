@@ -10,6 +10,12 @@ interface Props {
   categories: Category[]
 }
 
+const inputStyle = {
+  background: 'var(--receipt)',
+  border: '1px solid transparent',
+  color: 'var(--ink)',
+} as React.CSSProperties
+
 export default function TransactionForm({ userId, categories }: Props) {
   const router = useRouter()
   const [type, setType] = useState<'income' | 'expense'>('expense')
@@ -55,36 +61,38 @@ export default function TransactionForm({ userId, categories }: Props) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-4">
-      <p className="text-sm font-semibold text-gray-800">Novo lançamento</p>
+    <form onSubmit={handleSubmit} className="rounded-2xl p-5 space-y-4" style={{ background: 'var(--cream)', boxShadow: 'var(--lift-1)' }}>
+      <p className="t-label" style={{ color: 'var(--caption)' }}>Novo lançamento</p>
 
-      {error && <p className="text-xs text-red-500 bg-red-50 px-3 py-2 rounded-lg">{error}</p>}
-      {success && <p className="text-xs text-green-600 bg-green-50 px-3 py-2 rounded-lg">Lançamento salvo!</p>}
+      {error && <p className="text-xs px-3 py-2 rounded-xl" style={{ color: 'var(--gasto)', background: 'rgba(181,89,40,0.08)' }}>{error}</p>}
+      {success && <p className="text-xs px-3 py-2 rounded-xl" style={{ color: 'var(--ganho)', background: 'rgba(56,105,79,0.08)' }}>Lançamento salvo!</p>}
 
       {/* Type toggle */}
-      <div className="flex rounded-lg overflow-hidden border border-gray-200 text-sm">
+      <div className="flex rounded-xl overflow-hidden text-sm" style={{ border: '1px solid var(--receipt)' }}>
         <button
           type="button"
           onClick={() => setType('expense')}
-          className={`flex-1 py-1.5 font-medium transition-colors ${
-            type === 'expense' ? 'bg-red-500 text-white' : 'text-gray-500 hover:bg-gray-50'
-          }`}
+          className="flex-1 py-1.5 font-medium transition-colors"
+          style={type === 'expense'
+            ? { background: 'var(--gasto)', color: 'var(--cream)' }
+            : { color: 'var(--faint)', background: 'transparent' }}
         >
           Gasto
         </button>
         <button
           type="button"
           onClick={() => setType('income')}
-          className={`flex-1 py-1.5 font-medium transition-colors ${
-            type === 'income' ? 'bg-green-500 text-white' : 'text-gray-500 hover:bg-gray-50'
-          }`}
+          className="flex-1 py-1.5 font-medium transition-colors"
+          style={type === 'income'
+            ? { background: 'var(--ganho)', color: 'var(--cream)' }
+            : { color: 'var(--faint)', background: 'transparent' }}
         >
           Ganho
         </button>
       </div>
 
       <div className="space-y-1">
-        <label className="text-xs font-medium text-gray-600">Valor (R$)</label>
+        <label className="t-meta">Valor (R$)</label>
         <input
           type="number"
           step="0.01"
@@ -93,17 +101,19 @@ export default function TransactionForm({ userId, categories }: Props) {
           onChange={e => setAmount(e.target.value)}
           required
           placeholder="0,00"
-          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          className="w-full rounded-xl px-3 py-2 text-sm focus:outline-none"
+          style={inputStyle}
         />
       </div>
 
       <div className="space-y-1">
-        <label className="text-xs font-medium text-gray-600">Categoria</label>
+        <label className="t-meta">Categoria</label>
         <select
           value={categoryId}
           onChange={e => setCategoryId(e.target.value)}
           required
-          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+          className="w-full rounded-xl px-3 py-2 text-sm focus:outline-none"
+          style={inputStyle}
         >
           <option value="">Selecione...</option>
           {categories.map(c => (
@@ -115,24 +125,26 @@ export default function TransactionForm({ userId, categories }: Props) {
       </div>
 
       <div className="space-y-1">
-        <label className="text-xs font-medium text-gray-600">Data</label>
+        <label className="t-meta">Data</label>
         <input
           type="date"
           value={date}
           onChange={e => setDate(e.target.value)}
           required
-          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          className="w-full rounded-xl px-3 py-2 text-sm focus:outline-none"
+          style={inputStyle}
         />
       </div>
 
       <div className="space-y-1">
-        <label className="text-xs font-medium text-gray-600">Descrição</label>
+        <label className="t-meta">Descrição</label>
         <input
           type="text"
           value={description}
           onChange={e => setDescription(e.target.value)}
           placeholder="Ex: Aluguel de março"
-          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          className="w-full rounded-xl px-3 py-2 text-sm focus:outline-none"
+          style={inputStyle}
         />
       </div>
 
@@ -142,9 +154,10 @@ export default function TransactionForm({ userId, categories }: Props) {
           type="checkbox"
           checked={isFixed}
           onChange={e => setIsFixed(e.target.checked)}
-          className="rounded border-gray-300 text-indigo-600"
+          className="rounded"
+          style={{ accentColor: 'var(--reserva)' }}
         />
-        <label htmlFor="isFixed" className="text-xs text-gray-600">
+        <label htmlFor="isFixed" className="t-meta">
           Fixo (recorrente todo mês)
         </label>
       </div>
@@ -152,7 +165,8 @@ export default function TransactionForm({ userId, categories }: Props) {
       <button
         type="submit"
         disabled={loading}
-        className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-medium py-2 rounded-lg text-sm transition-colors"
+        className="w-full disabled:opacity-50 font-medium py-2 rounded-xl text-sm transition-colors"
+        style={{ background: 'var(--chumbo)', color: 'var(--ledger)' }}
       >
         {loading ? 'Salvando...' : 'Adicionar'}
       </button>

@@ -15,7 +15,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     .single()
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen" style={{ background: 'var(--parchment)' }}>
       <Sidebar userName={profile?.name ?? ''} />
       <main className="flex-1 overflow-y-auto">
         {children}
