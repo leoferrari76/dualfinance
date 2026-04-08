@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import CategoryPicker from '@/components/CategoryPicker'
 import type { CreditCard, Category } from '@/types'
 
 interface Props {
@@ -17,7 +18,7 @@ const inputStyle = {
   color: 'var(--ink)',
 } as React.CSSProperties
 
-export default function InstallmentForm({ cards, categories }: Props) {
+export default function InstallmentForm({ userId, cards, categories }: Props) {
   const router = useRouter()
   const [isInstallment, setIsInstallment] = useState(true)
   const [isRecurring, setIsRecurring] = useState(false)
@@ -60,6 +61,7 @@ export default function InstallmentForm({ cards, categories }: Props) {
 
   async function handleSubmit(e: React.SyntheticEvent) {
     e.preventDefault()
+    if (!categoryId) { setError('Selecione uma categoria.'); return }
     setError('')
     setLoading(true)
 
@@ -190,15 +192,14 @@ export default function InstallmentForm({ cards, categories }: Props) {
         </p>
       )}
 
-      <div className="space-y-1">
+      <div className="space-y-2">
         <label className="t-meta">Categoria</label>
-        <select value={categoryId} onChange={e => setCategoryId(e.target.value)} required
-          className="w-full rounded-xl px-3 py-2 text-sm focus:outline-none" style={inputStyle}>
-          <option value="">Selecione...</option>
-          {categories.map(c => (
-            <option key={c.id} value={c.id}>{c.custom_name ?? c.segment}</option>
-          ))}
-        </select>
+        <CategoryPicker
+          categories={categories}
+          value={categoryId}
+          onChange={setCategoryId}
+          userId={userId}
+        />
       </div>
 
       <button type="submit" disabled={loading}

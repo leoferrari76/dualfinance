@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import CategoryPicker from '@/components/CategoryPicker'
 import type { Category } from '@/types'
 
 interface Props {
@@ -22,14 +23,15 @@ export default function TransactionForm({ userId, categories }: Props) {
   const [amount, setAmount] = useState('')
   const [categoryId, setCategoryId] = useState('')
   const [date, setDate] = useState(new Date().toISOString().split('T')[0])
-  const [description, setDescription] = useState('')
+  const [nota, setNota] = useState('')
   const [isFixed, setIsFixed] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.SyntheticEvent) {
     e.preventDefault()
+    if (!categoryId) { setError('Selecione uma categoria.'); return }
     setError('')
     setLoading(true)
 
@@ -40,7 +42,7 @@ export default function TransactionForm({ userId, categories }: Props) {
       amount: parseFloat(amount.replace(',', '.')),
       category_id: categoryId,
       date,
-      description,
+      description: nota,
       is_fixed: isFixed,
     })
 
@@ -51,7 +53,7 @@ export default function TransactionForm({ userId, categories }: Props) {
     }
 
     setAmount('')
-    setDescription('')
+    setNota('')
     setCategoryId('')
     setIsFixed(false)
     setLoading(false)
@@ -106,22 +108,14 @@ export default function TransactionForm({ userId, categories }: Props) {
         />
       </div>
 
-      <div className="space-y-1">
+      <div className="space-y-2">
         <label className="t-meta">Categoria</label>
-        <select
+        <CategoryPicker
+          categories={categories}
           value={categoryId}
-          onChange={e => setCategoryId(e.target.value)}
-          required
-          className="w-full rounded-xl px-3 py-2 text-sm focus:outline-none"
-          style={inputStyle}
-        >
-          <option value="">Selecione...</option>
-          {categories.map(c => (
-            <option key={c.id} value={c.id}>
-              {c.custom_name ?? c.segment}
-            </option>
-          ))}
-        </select>
+          onChange={setCategoryId}
+          userId={userId}
+        />
       </div>
 
       <div className="space-y-1">
@@ -137,11 +131,11 @@ export default function TransactionForm({ userId, categories }: Props) {
       </div>
 
       <div className="space-y-1">
-        <label className="t-meta">Descrição</label>
+        <label className="t-meta">Nota <span style={{ color: 'var(--faint)' }}>(opcional)</span></label>
         <input
           type="text"
-          value={description}
-          onChange={e => setDescription(e.target.value)}
+          value={nota}
+          onChange={e => setNota(e.target.value)}
           placeholder="Ex: Aluguel de março"
           className="w-full rounded-xl px-3 py-2 text-sm focus:outline-none"
           style={inputStyle}
