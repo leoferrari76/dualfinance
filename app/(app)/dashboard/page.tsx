@@ -104,36 +104,43 @@ export default async function DashboardPage({
     .select('id')
     .eq('user_id', user.id)
 
-  let cardIds = (myCards ?? []).map((c: { id: string }) => c.id)
+  const myCardIds = (myCards ?? []).map((c: { id: string }) => c.id)
+  let partnerCardIds: string[] = []
 
   if (partnerId && partnerSharing) {
     const { data: partnerCards } = await supabase
       .from('credit_cards')
       .select('id')
       .eq('user_id', partnerId)
-    cardIds = [...cardIds, ...(partnerCards ?? []).map((c: { id: string }) => c.id)]
+    partnerCardIds = (partnerCards ?? []).map((c: { id: string }) => c.id)
   }
+
+  const cardIds = [...myCardIds, ...partnerCardIds]
 
   // Fetch installments active in the window: selected month → +5 months
   const lastForecastDate = new Date(year, mon - 1 + 5) // first of 6th forecast month
   const lastForecastStart = `${lastForecastDate.getFullYear()}-${String(lastForecastDate.getMonth() + 1).padStart(2, '0')}-01`
 
-  type RawInstallment = { per_installment_amount: number; start_date: string; end_date: string }
+  type RawInstallment = { per_installment_amount: number; start_date: string; end_date: string; credit_card_id: string }
   let allInstallments: RawInstallment[] = []
 
   if (cardIds.length > 0) {
     const { data: insts } = await supabase
       .from('installments')
-      .select('per_installment_amount, start_date, end_date')
+      .select('per_installment_amount, start_date, end_date, credit_card_id')
       .in('credit_card_id', cardIds)
       .lte('start_date', lastForecastStart)
       .gte('end_date', startDate)
     allInstallments = (insts ?? []) as RawInstallment[]
   }
 
-  function cardExpensesForMonth(monthStart: string) {
+  function cardExpensesForMonth(monthStart: string, filterCardIds?: string[]) {
     return allInstallments
-      .filter(inst => inst.start_date <= monthStart && inst.end_date >= monthStart)
+      .filter(inst =>
+        inst.start_date <= monthStart &&
+        inst.end_date >= monthStart &&
+        (filterCardIds ? filterCardIds.includes(inst.credit_card_id) : true)
+      )
       .reduce((s, inst) => s + Number(inst.per_installment_amount), 0)
   }
 
@@ -161,9 +168,16 @@ export default async function DashboardPage({
     .filter(t => t.type === 'expense' && t.is_fixed)
     .reduce((s, t) => s + Number(t.amount), 0)
 
-  const cardExpenses = cardExpensesForMonth(startDate)
+  const myCardExpenses = cardExpensesForMonth(startDate, myCardIds)
+  const partnerCardExpenses = cardExpensesForMonth(startDate, partnerCardIds)
+  const cardExpenses = myCardExpenses + partnerCardExpenses
   const totalExpenses = combined.expenses + cardExpenses
   const totalBalance = combined.income - totalExpenses
+
+  const myTotalExpenses = mine.expenses + myCardExpenses
+  const myBalance = mine.income - myTotalExpenses
+  const partnerTotalExpenses = partner.expenses + partnerCardExpenses
+  const partnerBalance = partner.income - partnerTotalExpenses
 
   const bySegment = SEGMENTS.map(segment => {
     const txs = allTransactions.filter((t) => {
@@ -308,9 +322,9 @@ export default async function DashboardPage({
           <p className="t-label mb-3" style={{ color: 'var(--caption)' }}>{myName}</p>
           <div className="space-y-2">
             <Row label="Entradas" value={mine.income} type="income" />
-            <Row label="Saídas" value={mine.expenses} type="expense" />
+            <Row label="Saídas" value={myTotalExpenses} type="expense" />
             <div className="pt-2" style={{ borderTop: '1px solid var(--receipt)' }}>
-              <Row label="Saldo" value={mine.balance} type={mine.balance >= 0 ? 'balance' : 'expense'} bold />
+              <Row label="Saldo" value={myBalance} type={myBalance >= 0 ? 'balance' : 'expense'} bold />
             </div>
           </div>
         </div>
@@ -321,9 +335,9 @@ export default async function DashboardPage({
             {hasPartnerData ? (
               <div className="space-y-2">
                 <Row label="Entradas" value={partner.income} type="income" />
-                <Row label="Saídas" value={partner.expenses} type="expense" />
+                <Row label="Saídas" value={partnerTotalExpenses} type="expense" />
                 <div className="pt-2" style={{ borderTop: '1px solid var(--receipt)' }}>
-                  <Row label="Saldo" value={partner.balance} type={partner.balance >= 0 ? 'balance' : 'expense'} bold />
+                  <Row label="Saldo" value={partnerBalance} type={partnerBalance >= 0 ? 'balance' : 'expense'} bold />
                 </div>
               </div>
             ) : (
