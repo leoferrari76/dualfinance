@@ -340,8 +340,8 @@ export default async function DashboardPage({
             <div key={segment} style={{ borderTop: si === 0 ? 'none' : '1px solid var(--receipt)' }}>
               {/* Segment header */}
               <div className="flex items-center justify-between px-5 py-3">
-                <span className="text-sm font-medium" style={{ color: 'var(--ink)' }}>{segment}</span>
-                <div className="flex gap-3 text-xs">
+                <span className="text-sm font-bold" style={{ color: 'var(--ink)' }}>{segment}</span>
+                <div className="flex gap-3 text-xs font-bold">
                   {income > 0 && <span style={{ color: 'var(--ganho)' }}>+{income.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>}
                   {expenses > 0 && <span style={{ color: 'var(--gasto)' }}>-{expenses.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>}
                 </div>
